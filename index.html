@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>PCRP Media Gateway</title>
+    <title>PCRP TV Gateway</title>
 
     <style>
         html,
@@ -29,10 +29,14 @@
             background: #000;
         }
 
-        #player iframe {
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             border: 0;
+            background: #000;
         }
 
         #error {
@@ -44,15 +48,14 @@
             text-align: center;
             padding: 30px;
             box-sizing: border-box;
-            color: #fff;
-            background: #000;
+
+            color: white;
+            background: black;
+
             font-family: Arial, sans-serif;
             font-size: 22px;
         }
     </style>
-
-    <!-- Official Twitch Embed SDK -->
-    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 </head>
 
 <body>
@@ -62,129 +65,146 @@
 
     <script>
         (function () {
-            const params = new URLSearchParams(window.location.search);
 
-            const youtubeId = params.get("v");
-            const twitchChannel = params.get("t");
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
 
-            const playerContainer = document.getElementById("player");
-            const errorContainer = document.getElementById("error");
+            const youtubeId =
+                params.get("v");
+
+            const twitchChannel =
+                params.get("t");
+
+            const player =
+                document.getElementById("player");
+
+            const error =
+                document.getElementById("error");
+
 
             function showError(message) {
-                playerContainer.innerHTML = "";
+                player.innerHTML = "";
 
-                errorContainer.textContent = message;
-                errorContainer.style.display = "flex";
+                error.textContent = message;
+                error.style.display = "flex";
             }
 
-            function sanitizeYouTubeId(value) {
-                if (!value) return null;
-
-                // Standard YouTube video IDs are 11 characters.
-                if (/^[A-Za-z0-9_-]{11}$/.test(value)) {
-                    return value;
-                }
-
-                return null;
-            }
-
-            function sanitizeTwitchChannel(value) {
-                if (!value) return null;
-
-                // Twitch channel names are normally letters,
-                // numbers and underscores.
-                if (/^[A-Za-z0-9_]+$/.test(value)) {
-                    return value;
-                }
-
-                return null;
-            }
 
             // ==========================================
             // TWITCH
             // ==========================================
 
             if (twitchChannel) {
-                const channel = sanitizeTwitchChannel(twitchChannel);
 
-                if (!channel) {
-                    showError("Invalid Twitch channel.");
+                if (
+                    !/^[A-Za-z0-9_]+$/.test(
+                        twitchChannel
+                    )
+                ) {
+                    showError(
+                        "Invalid Twitch channel."
+                    );
+
                     return;
                 }
 
-                if (typeof Twitch === "undefined" || !Twitch.Player) {
-                    showError("Twitch player failed to load.");
-                    return;
-                }
 
-                try {
-                    new Twitch.Player("player", {
-                        width: "100%",
-                        height: "100%",
-                        channel: channel,
-                        autoplay: true,
-                        muted: false,
+                const iframe =
+                    document.createElement("iframe");
 
-                        // GitHub Pages hostname.
-                        // window.location.hostname ensures this matches
-                        // the actual page hosting this gateway.
-                        parent: [
-                            window.location.hostname
-                        ]
-                    });
-                } catch (error) {
-                    console.error("Twitch player error:", error);
-                    showError("Unable to load Twitch stream.");
-                }
+
+                iframe.src =
+                    "https://player.twitch.tv/" +
+                    "?channel=" +
+                    encodeURIComponent(
+                        twitchChannel
+                    ) +
+                    "&parent=mpers13.github.io" +
+                    "&autoplay=true" +
+                    "&muted=false";
+
+
+                iframe.allow =
+                    "autoplay; fullscreen";
+
+
+                iframe.allowFullscreen = true;
+
+
+                player.appendChild(
+                    iframe
+                );
+
 
                 return;
             }
+
 
             // ==========================================
             // YOUTUBE
             // ==========================================
 
             if (youtubeId) {
-                const id = sanitizeYouTubeId(youtubeId);
 
-                if (!id) {
-                    showError("Invalid YouTube video ID.");
+                if (
+                    !/^[A-Za-z0-9_-]{11}$/.test(
+                        youtubeId
+                    )
+                ) {
+                    showError(
+                        "Invalid YouTube video ID."
+                    );
+
                     return;
                 }
 
-                const iframe = document.createElement("iframe");
+
+                const iframe =
+                    document.createElement("iframe");
+
 
                 iframe.src =
                     "https://www.youtube.com/embed/" +
-                    encodeURIComponent(id) +
+                    encodeURIComponent(
+                        youtubeId
+                    ) +
                     "?autoplay=1" +
                     "&controls=0" +
                     "&rel=0" +
                     "&playsinline=1" +
                     "&mute=0";
 
+
                 iframe.allow =
-                    "autoplay; encrypted-media; picture-in-picture";
+                    "autoplay; encrypted-media; picture-in-picture; fullscreen";
+
 
                 iframe.allowFullscreen = true;
+
 
                 iframe.referrerPolicy =
                     "strict-origin-when-cross-origin";
 
-                iframe.style.width = "100%";
-                iframe.style.height = "100%";
-                iframe.style.border = "0";
 
-                playerContainer.appendChild(iframe);
+                player.appendChild(
+                    iframe
+                );
+
 
                 return;
             }
 
+
             // ==========================================
-            // NOTHING PROVIDED
+            // NO SOURCE
             // ==========================================
 
-            showError("No media source provided.");
+            showError(
+                "No media source provided."
+            );
+
         })();
     </script>
 
