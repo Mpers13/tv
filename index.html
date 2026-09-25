@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+    <!-- Load Twitch's Official Embed Script -->
+    <script src="https://twitch.tv"></script>
+</head>
+<body>
+    <div id="player" style="width: 100%; height: 100%;"></div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');       // For YouTube
+        const twitchUser = urlParams.get('t');    // For Twitch
+
+        // 1. IF TWITCH STREAM
+        if (twitchUser) {
+            var options = {
+                width: "100%",
+                height: "100%",
+                channel: twitchUser,
+                autoplay: true,
+                muted: false,
+                parent: ["twitch.tv", "127.0.0.1", "localhost"] // Bypasses the CSP secure frame block
+            };
+            var player = new Twitch.Player("player", options);
+        } 
+        
+        // 2. IF YOUTUBE VIDEO
+        else if (videoId) {
+            document.getElementById('player').innerHTML = `
+                <iframe src="https://youtube.com{videoId}?autoplay=1&controls=0&rel=0&mute=0" 
+                        allow="autoplay; encrypted-media" 
+                        referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>`;
+        } 
+        
+        // 3. FALLBACK ERROR
+        else {
+            document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:20%;font-family:sans-serif;'>No Media Source Provided</h1>";
+        }
+    </script>
+</body>
+</html>
